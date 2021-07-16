@@ -23,7 +23,7 @@ setup(
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.9",
     ],
-    packages=["reader"],
+    packages=[],
     include_package_data=True,
     install_requires=[],
     entry_points={},
