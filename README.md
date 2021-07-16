@@ -98,13 +98,17 @@ class UserPassAuth(AuthenticationMethod):
         self.password = password
 
     def getId(self):
-        return 0x02  # 0x02 means Username / Password authentication, See https://en.wikipedia.org/wiki/SOCKS#SOCKS5 for a list of all authentication ID's
+        return 0x02 # 0x02 means Username / Password authentication, See https://en.wikipedia.org/wiki/SOCKS#SOCKS5 for a list of all authentication ID's
+
+    def for(self):
+        return Socks.SOCKS5 # This method is for SOCKS5 only
 
     def authenticate(self, socket):
         socket.sendall(b"\x01" + struct.pack("B", len(self.username)) + self.username.encode() + struct.pack("B", len(self.password)) + self.password.encode())
         ver, status = socket.recv(2)
 
         return status == 0x00
+
 ```
 
 ### Installation
