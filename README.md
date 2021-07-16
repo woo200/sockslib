@@ -1,8 +1,17 @@
 
+
 # Socks5Lib
 
 Socks5lib is a library designed to make the usage of socks5 proxies as easy as possible.
 This library can connect to proxies, authenticate, and then have the use of a normal python socket.
+
+## Features
+- IPv4 Support
+- IPv6 Support
+- Domain Support
+- User/Pass authentication
+- Easily customizable authentication
+- Full socket api
 
 ## Examples
 ### Usage
