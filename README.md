@@ -50,3 +50,12 @@ class UserPassAuth(AuthenticationMethod):
 
         return status == 0x00
 ```
+
+### Installation
+
+`pip3 install sockslib`
+
+### Issues
+
+If you have any issues with this project please feel free to open a new issue on github
+https://github.com/licyb200/sockslib/issues
