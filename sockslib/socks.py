@@ -1,6 +1,6 @@
 import socket
 import struct
-import regex
+import re
 import ipaddress
 
 class SocksException(Exception):
@@ -59,7 +59,7 @@ class IpIdentify():
                 return AddrTypes.IPv6
         except:
             rident = r"^(?=.{1,255}$)(?!-)[A-Za-z0-9\-]{1,63}(\.[A-Za-z0-9\-]{1,63})*\.?(?<!-)$"
-            match = regex.match(rident, ip)
+            match = re.match(rident, ip)
 
             if match:
                 return AddrTypes.Domain
