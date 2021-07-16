@@ -1,44 +1,91 @@
 
 
+
 # Socks5Lib
 
 Socks5lib is a library designed to make the usage of socks5 proxies as easy as possible.
 This library can connect to proxies, authenticate, and then have the use of a normal python socket.
 
 ## Features
+- Socks5 support
+- Socks4 support
 - IPv4 Support
-- IPv6 Support
+- IPv6 Support (Socks5)
 - Domain Support
-- User/Pass authentication
-- Easily customizable authentication
+- User/Pass authentication  (Socks5)
+- Easily customizable authentication (Socks5)
 - Full socket api
 
-## Examples
-### Usage
-This is an example usage that connects to a proxy at `127.0.0.1:9050` and then requests the page http://myexternalip.com/raw
+## Documentation
+
+#### Creating a new socket
 ```python
-from sockslib import *
-
-socket = SocksSocket()
-socket.set_proxy(('127.0.0.1', 9050))
-socket.connect(('myexternalip.com', 80))
-
-socket.sendall(b"GET /raw HTTP/1.1\r\nHost: myexternalip.com\r\n\r\n")
-
-print(socket.recv(1024))
+socket = sockslib.SocksSocket()
 ```
-### Using other authentication methods
+#### sock.set_proxy(proxy, type, authentication)
+```python
+socket.set_proxy (
+	('127.0.0.1', 0),      # Ip, Port
+	sockslib.Socks.SOCKS5, # SOCKS5/SOCKS4, (Optional)
+	authentication         # Array of authentication methods (Optional)
+)
+```
+
+## Examples
+### Socks5
+This is an example usage that connects to a Socks5 proxy at `127.0.0.1:9050` and then requests the page http://myexternalip.com/raw
+```python
+import sockslib
+
+with sockslib.SocksSocket() as sock:
+    sock.set_proxy(('127.0.0.1', 9050)) # Set proxy
+
+    sock.connect(('myexternalip.com', 80)) # Connect to Server via proxy
+    sock.sendall(b"GET /raw HTTP/1.1\r\nHost: myexternalip.com\r\n\r\n") # Send HTTP Request
+    print(sock.recv(1024)) # Print response
+```
+### Socks4
+This is an example usage that connects to a Socks4 proxy at `127.0.0.1:9050` and then requests the page http://myexternalip.com/raw
+```python
+import sockslib
+
+with sockslib.SocksSocket() as sock:
+    sock.set_proxy(('127.0.0.1', 9050), sockslib.Socks.SOCKS4) # Set proxy
+
+    sock.connect(('myexternalip.com', 80)) # Connect to Server via proxy
+    sock.sendall(b"GET /raw HTTP/1.1\r\nHost: myexternalip.com\r\n\r\n") # Send HTTP Request
+    print(sock.recv(1024)) # Print response
+```
+#### Socks4 with identity authentication
+```python
+import sockslib
+
+with sockslib.SocksSocket() as sock:
+    auth_methods = [
+        sockslib.Socks4Ident("ident")
+    ]
+    sock.set_proxy(('127.0.0.1', 9050), sockslib.Socks.SOCKS4, auth_methods) # Set proxy
+
+    sock.connect(('myexternalip.com', 80)) # Connect to Server via proxy
+    sock.sendall(b"GET /raw HTTP/1.1\r\nHost: myexternalip.com\r\n\r\n") # Send HTTP Request
+    print(sock.recv(1024)) # Print response
+```
+
+### Using other authentication methods (Socks5)
 To use more authentication methods like User/Pass auth, you pass an array of authentication methods to the second parameter of `set_proxy`
 ```python
-from sockslib import *
+import sockslib
 
-socket = SocksSocket()
-socket.set_proxy(('127.0.0.1', 9050), [NoAuth(), UserPassAuth('username', 'password')])
-socket.connect(('myexternalip.com', 80))
+with sockslib.SocksSocket() as sock:
+    auth_methods = [
+        sockslib.NoAuth(),                             # No authentication
+        sockslib.UserPassAuth('username', 'password'), # Username / Password authentication
+    ]
+    sock.set_proxy(('127.0.0.1', 9050), sockslib.Socks.SOCKS5, auth_methods) # Set proxy
 
-socket.sendall(b"GET /raw HTTP/1.1\r\nHost: myexternalip.com\r\n\r\n")
-
-print(socket.recv(1024))
+    sock.connect(('myexternalip.com', 80)) # Connect to Server via proxy
+    sock.sendall(b"GET /raw HTTP/1.1\r\nHost: myexternalip.com\r\n\r\n") # Send HTTP Request
+    print(sock.recv(1024)) # Print response
 ```
 
 ### Implementing your own authentication methods

@@ -75,7 +75,11 @@ class SocksErrors():
         0x05: "Connection refused by destination host",
         0x06: "TTL expired",
         0x07: "Command not supported / protocol error",
-        0x08: "Address type not supported"
+        0x08: "Address type not supported",
+        0x5A: "Granted",
+        0x5B: "Request rejected or failed",
+        0x5C: "Request failed because client is not running identd (or not reachable from server)",
+        0x5D: "Request failed because client's identd could not confirm the user ID in the request"
     }
 
     @staticmethod
@@ -99,18 +103,38 @@ class NoAuth(AuthenticationMethod):
     def authenticate(self, socket):
         return True
 
+class Socks4Ident(AuthenticationMethod):
+    def __init__(self, *args):
+        if len(args) == 0:
+            self.ident = ''
+        else:
+            self.ident = args[0]
+
+    def getId(self):
+        return 0x00
+
+    def authenticate(self, socket):
+        return True
+
+class Socks:
+    SOCKS5 = 5
+    SOCKS4 = 4
+
 class SocksSocket(socket.socket):
     def __init__(self):
         super().__init__(socket.AF_INET, socket.SOCK_STREAM)
         self.proxy = None
         self.auth = [NoAuth()]
+        self.socktype = None
 
-    def set_proxy(self, proxy, auth=[NoAuth()]):
+    def set_proxy(self, proxy, socktype=Socks.SOCKS5, auth=[NoAuth()]):
         self.proxy = proxy
         self.auth = auth
+        self.socktype = socktype
 
-    def __handshake(self, hp, auth=[NoAuth()]):
+    def __handshake_5(self, hp, auth=[NoAuth()]):
         if len(auth) < 1:
+            self.close()
             raise SocksException("Must provide at least 1 authentication method. Leave the auth field blank for the default (No authentication)")
 
         self.sendall(b"\x05" + struct.pack("B", len(auth)) + bytes([method.getId() for method in auth]))
@@ -133,6 +157,7 @@ class SocksSocket(socket.socket):
         # Send connect request packet
         addr_type = IpIdentify.identify(ip)
         if addr_type == None:
+            self.close()
             raise SocksException(f"Invalid IP address or domain name: {ip}")
 
         self.sendall(b'\x05\x01\x00' + Socks5Address(ip, addr_type).getByteIp() + struct.pack("!H", port))
@@ -148,9 +173,44 @@ class SocksSocket(socket.socket):
 
         return bndaddr, bndport
 
+    def __handshake_4(self, hp, auth=[Socks4Ident("")]):
+        ip, port = hp
+        ident = IpIdentify.identify(ip)
+
+        if ident == AddrTypes.Domain:
+            ip = socket.gethostbyname_ex(ip)[2][0]
+        elif ident == AddrTypes.IPv6:
+            self.close()
+            raise SocksException("IPv6 is not supported for Socks4")
+        else:
+            self.close()
+            raise SocksException(f"Unknown IP type ({ip})")
+
+        id = ""
+        for method in auth:
+            if isinstance(method, Socks4Ident):
+                id = method.ident
+                break
+
+        self.sendall(b"\x04\x01" + struct.pack("!H", port) + ipaddress.IPv4Address(ip).packed + id.encode() + b"\x00")
+        _, rep = self.recv(2)
+
+        if rep != 0x5A:
+            self.close()
+            raise SocksException(f"Server denied connection request with response: {SocksErrors.request_denied(rep)}")
+
+        dstport, = struct.unpack("!H", self.recv(2))
+        dstip = ipaddress.IPv4Address(self.recv(4)).exploded
+
     def connect(self, hp):
         if self.proxy == None:
             raise SocksException("No proxy selected")
 
         super().connect(self.proxy)
-        self.__handshake(hp, self.auth)
+
+        if self.socktype == Socks.SOCKS5:
+            self.__handshake_5(hp, self.auth)
+        elif self.socktype == Socks.SOCKS4:
+            self.__handshake_4(hp, self.auth)
+        else:
+            raise SocksException(f"Unknown proxy type {self.socktype}")
