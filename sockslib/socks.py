@@ -129,23 +129,68 @@ class Socks:
     SOCKS5 = 5
     SOCKS4 = 4
 
+class ProxyHopper:
+    def __init__(self, proxies, debug=False, stype=Socks.SOCKS5):
+        self.proxies = proxies
+        self.debug = debug
+        self.stype = stype
+
+    def connect(self, addr):
+        self.hopper = None
+        for proxy in self.proxies:
+            self.hopper = SocksSocket(self.hopper, self.debug)
+            self.hopper.set_proxy(proxy, self.stype)
+        self.hopper.connect(addr)
+
+    def sendall(self, data):
+        self.hopper.sendall(data)
+
+    def recv(self, numbytes=1):
+        return self.hopper.recv(numbytes)
+
+    def close(self):
+        self.hopper.close()
+
 class SocksSocket(socket.socket):
-    def __init__(self):
+    def __init__(self, socketobject=None, debug=False):
         super().__init__(socket.AF_INET, socket.SOCK_STREAM)
 
         self.proxy = None
         self.auth = [NoAuth()]
         self.socktype = None
+        self.socketobject = socketobject
+        self.debug = debug
 
     def set_proxy(self, proxy, socktype=Socks.SOCKS5, auth=[NoAuth()]):
         self.proxy = proxy
         self.auth = auth
         self.socktype = socktype
 
+    def sendall(self, data):
+        if self.socketobject != None:
+            self.socketobject.sendall(data)
+        else:
+            super().sendall(data)
+
+    def recv(self, numbytes=1):
+        if self.socketobject != None:
+            return self.socketobject.recv(numbytes)
+        else:
+            return super().recv(numbytes)
+
+    def close(self):
+        if self.socketobject != None:
+            return self.socketobject.close()
+        else:
+            return super().close()
+
     def __handshake_5(self, hp, auth=[NoAuth()]):
         if len(auth) < 1:
             self.close()
             raise SocksException("Must provide at least 1 authentication method. Leave the auth field blank for the default (No authentication)")
+
+        if self.debug:
+            print("[DEBUG/INFO] (SOCKS5) Sending authentication request...")
 
         self.sendall(b"\x05" + struct.pack("B", len(auth)) + bytes([method.getId() for method in auth]))
         ver, authc = self.recv(2)
@@ -156,6 +201,9 @@ class SocksSocket(socket.socket):
         if authc == 0xFF:
             self.close()
             raise SocksException("No usable authentication methods available")
+
+        if self.debug:
+            print(f"[DEBUG/INFO] (SOCKS5) Server chose authentication method: [{authc}]")
 
         for method in auth:
             if method.forP() != Socks.SOCKS5:
@@ -172,6 +220,8 @@ class SocksSocket(socket.socket):
             self.close()
             raise SocksException(f"Invalid IP address or domain name: {ip}")
 
+        if self.debug:
+            print("[DEBUG/INFO] (SOCKS5) Sending connection request...")
         self.sendall(b'\x05\x01\x00' + Socks5Address(ip, addr_type).getByteIp() + struct.pack("!H", port))
 
         ver, status, _ = self.recv(3)
@@ -182,6 +232,9 @@ class SocksSocket(socket.socket):
 
         bndaddr = Socks5Address.readAddr(self)
         bndport, = struct.unpack("!H", self.recv(2))
+
+        if self.debug:
+            print(f"[DEBUG/INFO] (SOCKS5) Server accepted connection. (*{dstip}:{dstport})")
 
         return bndaddr, bndport
 
@@ -194,6 +247,8 @@ class SocksSocket(socket.socket):
         elif ident == AddrTypes.IPv6:
             self.close()
             raise SocksException("IPv6 is not supported for Socks4")
+        elif ident == AddrTypes.IPv4:
+            pass
         else:
             self.close()
             raise SocksException(f"Unknown IP type ({ip})")
@@ -204,6 +259,9 @@ class SocksSocket(socket.socket):
                 id = method.ident
                 break
 
+        if self.debug:
+            print("[DEBUG/INFO] (SOCKS4) Sending authentication request...")
+
         self.sendall(b"\x04\x01" + struct.pack("!H", port) + ipaddress.IPv4Address(ip).packed + id.encode() + b"\x00")
         _, rep = self.recv(2)
 
@@ -213,12 +271,23 @@ class SocksSocket(socket.socket):
 
         dstport, = struct.unpack("!H", self.recv(2))
         dstip = ipaddress.IPv4Address(self.recv(4)).exploded
+        if self.debug:
+            print(f"[DEBUG/INFO] (SOCKS4) Server accepted connection. (*{dstip}:{dstport})")
 
     def connect(self, hp):
         if self.proxy == None:
             raise SocksException("No proxy selected")
 
-        super().connect(self.proxy)
+        if self.debug:
+            print(f"[DEBUG/INFO] Connecting to proxy: {self.proxy}")
+
+        if self.socketobject != None:
+            self.socketobject.connect(self.proxy)
+        else:
+            super().connect(self.proxy)
+
+        if self.debug:
+            print("[DEBUG/INFO] Connected, Handshaking...")
 
         if self.socktype == Socks.SOCKS5:
             self.__handshake_5(hp, self.auth)
