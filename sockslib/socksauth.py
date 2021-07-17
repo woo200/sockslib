@@ -9,7 +9,7 @@ class UserPassAuth(AuthenticationMethod):
     def getId(self):
         return 0x02
 
-    def for(self):
+    def forP(self):
         return Socks.SOCKS5
 
     def authenticate(self, socket):

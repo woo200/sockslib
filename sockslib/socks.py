@@ -93,7 +93,7 @@ class AuthenticationMethod():
     def getId(self) -> int:
         pass
 
-    def for(self) -> int:
+    def forP(self) -> int:
         pass
 
     def authenticate(self, socket) -> bool:
@@ -103,7 +103,7 @@ class NoAuth(AuthenticationMethod):
     def getId(self):
         return 0x00
 
-    def for(self):
+    def forP(self):
         return Socks.SOCKS5
 
     def authenticate(self, socket):
@@ -116,7 +116,7 @@ class Socks4Ident(AuthenticationMethod):
         else:
             self.ident = args[0]
 
-    def for(self):
+    def forP(self):
         return Socks.SOCKS4
 
     def getId(self):
@@ -132,6 +132,7 @@ class Socks:
 class SocksSocket(socket.socket):
     def __init__(self):
         super().__init__(socket.AF_INET, socket.SOCK_STREAM)
+
         self.proxy = None
         self.auth = [NoAuth()]
         self.socktype = None
@@ -157,7 +158,7 @@ class SocksSocket(socket.socket):
             raise SocksException("No usable authentication methods available")
 
         for method in auth:
-            if method.for() != Socks.SOCKS5:
+            if method.forP() != Socks.SOCKS5:
                 pass
             if method.getId() == authc:
                 if not method.authenticate(self):

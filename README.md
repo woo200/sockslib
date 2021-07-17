@@ -2,6 +2,7 @@
 
 
 
+
 # SocksLib
 
 
@@ -75,7 +76,7 @@ with sockslib.SocksSocket() as sock:
 ```
 
 ### Using other authentication methods (Socks5)
-To use more authentication methods like User/Pass auth, you pass an array of authentication methods to the second parameter of `set_proxy`
+To use more authentication methods like User/Pass auth, you pass an array of authentication methods to the third parameter of `set_proxy` (Don't neglect to set the second parameter to the proxy type!)
 ```python
 import sockslib
 
@@ -92,26 +93,28 @@ with sockslib.SocksSocket() as sock:
 ```
 
 ### Implementing your own authentication methods
-To implement your own socks5 authentication method, you must make a class that implements `sockslib.AuthenticationMethod` it requires that you implement a `getId()` function and an `authenticate(socket)` function. Note: the authenticate function must return a boolean, True if authentication succeeded and False if it failed.
+To implement your own socks5 authentication method, you must make a class that implements `sockslib.AuthenticationMethod` it requires that you implement a `getId()` function, an `authenticate(socket)` function, and a `forP` function. Note: the authenticate function must return a boolean, True if authentication succeeded and False if it failed.
 
 ```python
+from sockslib import AuthenticationMethod
+import struct
+
 class UserPassAuth(AuthenticationMethod):
     def __init__(self, username, password):
         self.username = username
         self.password = password
 
     def getId(self):
-        return 0x02 # 0x02 means Username / Password authentication, See https://en.wikipedia.org/wiki/SOCKS#SOCKS5 for a list of all authentication ID's
+        return 0x02 # 0x02 means password authentication, see https://en.wikipedia.org/wiki/SOCKS#SOCKS5 for more
 
-    def for(self):
-        return Socks.SOCKS5 # This method is for SOCKS5 only
+    def forP(self):
+        return Socks.SOCKS5 # For SOCKS5
 
     def authenticate(self, socket):
-        socket.sendall(b"\x01" + struct.pack("B", len(self.username)) + self.username.encode() + struct.pack("B", len(self.password)) + self.password.encode())
-        ver, status = socket.recv(2)
+        socket.sendall(b"\x01" + struct.pack("B", len(self.username)) + self.username.encode() + struct.pack("B", len(self.password)) + self.password.encode()) # Send authentication packet
+        ver, status = socket.recv(2) # Get authentication response
 
         return status == 0x00
-
 ```
 
 ### Installation
