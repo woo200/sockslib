@@ -8,13 +8,13 @@ class UserPassAuth(AuthenticationMethod):
         self.password = password
 
     def getId(self):
-        return 0x02
+        return 0x02 # 0x02 means password authentication, see https://en.wikipedia.org/wiki/SOCKS#SOCKS5 for more
 
     def forP(self):
-        return Socks.SOCKS5
+        return Socks.SOCKS5 # For SOCKS5
 
     def authenticate(self, socket):
-        socket.sendall(b"\x01" + struct.pack("B", len(self.username)) + self.username.encode() + struct.pack("B", len(self.password)) + self.password.encode())
-        ver, status = socket.recv(2)
+        socket.sendall(b"\x01" + struct.pack("B", len(self.username)) + self.username.encode() + struct.pack("B", len(self.password)) + self.password.encode()) # Send authentication packet
+        ver, status = socket.recv(2) # Get authentication response
 
         return status == 0x00

@@ -108,7 +108,8 @@ with sockslib.SocksSocket() as sock:
 To implement your own socks5 authentication method, you must make a class that implements `sockslib.AuthenticationMethod` it requires that you implement a `getId()` function, an `authenticate(socket)` function, and a `forP` function. Note: the authenticate function must return a boolean, True if authentication succeeded and False if it failed.
 
 ```python
-from sockslib import AuthenticationMethod
+from sockslib.socks import AuthenticationMethod
+from sockslib.socks import Socks
 import struct
 
 class UserPassAuth(AuthenticationMethod):
@@ -136,4 +137,4 @@ class UserPassAuth(AuthenticationMethod):
 ### Issues
 
 If you have any issues with this project please feel free to open a new issue on github
-https://github.com/licyb200/sockslib/issues
+https://github.com/woo200/sockslib/issues

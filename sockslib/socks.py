@@ -230,6 +230,18 @@ class SocksSocket(socket.socket):
 
         self.udpsocket.sendto(packet, self.udpbind)
 
+    def recvfrom(self, bytes):
+        """
+        -- UDP ONLY --
+         Recieve Data from UDP sock.
+        """
+        if not self.udp:
+            raise SocksException("Cannot use SENDTO on TCP type socket")
+        if self.udpbind == None or self.udpsocket == None:
+            raise SocksException("Proxy connection not initialized")
+
+        return self.udpsocket.recvfrom(bytes)
+
     def close(self):
         if self.socketobject != None:
             return self.socketobject.close()
@@ -346,7 +358,6 @@ class SocksSocket(socket.socket):
             raise SocksException("Cannot initialize UDP proxy connection on TCP socket. Please see docs for proper UDP socket use.")
 
         self.udpsocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.udpsocket.settimeout(1)
         #self.udpsocket.bind(('', ))
         self.connect(None)
 
