@@ -10,13 +10,13 @@ README = (HERE / "README.md").read_text()
 # This call to setup() does all the work
 setup(
     name="sockslib",
-    version="1.4.5",
+    version="1.6.1",
     description="Simple Socks proxy library",
     long_description=README,
     long_description_content_type="text/markdown",
-    url="https://github.com/licyb200/sockslib",
-    author="Licyb Fitzpatrick",
-    author_email="licyb200@protonmail.com",
+    url="https://github.com/woo200/sockslib",
+    author="Jack Woo",
+    author_email="woo.jack.06@gmail.com",
     license="MIT",
     classifiers=[
         "License :: OSI Approved :: MIT License",
