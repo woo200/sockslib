@@ -1,10 +1,4 @@
-
-
-
-
-
 # SocksLib
-
 
 Sockslib is a library designed to make the usage of socks proxies as easy as possible.
 This library can connect to proxies, authenticate, and then have the use of a normal python socket.
@@ -23,6 +17,16 @@ This library can connect to proxies, authenticate, and then have the use of a no
 - Full socket api
 ## Documentation
 
+### Index
+ 1. [SOCKS5](#socks5)
+    1. [TCP](#socks5-tcp)
+    2. [UDP](#socks5-udp)
+    3. [Using Other Authentication Methods](#using-other-authentication-methods)
+    4. [Implementing Your Own Authentication Methods](#implementing-your-own-authentication-methods)
+ 2. [SOCKS4](#socks4)
+    1. [No Authentication](#socks4)
+    2. [Identity Authentication](#socks4-with-identity-authentication)
+
 #### Creating a new socket
 ```python
 socket = sockslib.SocksSocket()
@@ -37,7 +41,10 @@ socket.set_proxy (
 ```
 
 ## Examples
-### Socks5 (TCP)
+
+### SOCKS5
+
+### Socks5 TCP
 This is an example usage that connects to a Socks5 proxy at `127.0.0.1:9050` and then requests the page http://myexternalip.com/raw
 ```python
 import sockslib
@@ -49,7 +56,7 @@ with sockslib.SocksSocket() as sock:
     sock.sendall(b"GET /raw HTTP/1.1\r\nHost: myexternalip.com\r\n\r\n") # Send HTTP Request
     print(sock.recv(1024)) # Print response
 ```
-### Socks5 (UDP)
+### Socks5 UDP
 This is an example usage that connects to a Socks5 proxy at `127.0.0.1:9050` and then sends a UDP packet.
 ```python
 import sockslib
@@ -60,34 +67,8 @@ with sockslib.SocksSocket(udp=True) as sock:
     sock.initudp() # Connect to Server and bind a UDP port for communication
     sock.sendto(b"Hello, World", ("0.0.0.0", 12000)) # Send "Hello, World" to 0.0.0.0:12000 over UDP
 ```
-### Socks4
-This is an example usage that connects to a Socks4 proxy at `127.0.0.1:9050` and then requests the page http://myexternalip.com/raw
-```python
-import sockslib
 
-with sockslib.SocksSocket() as sock:
-    sock.set_proxy(('127.0.0.1', 9050), sockslib.Socks.SOCKS4) # Set proxy
-
-    sock.connect(('myexternalip.com', 80)) # Connect to Server via proxy
-    sock.sendall(b"GET /raw HTTP/1.1\r\nHost: myexternalip.com\r\n\r\n") # Send HTTP Request
-    print(sock.recv(1024)) # Print response
-```
-#### Socks4 with identity authentication
-```python
-import sockslib
-
-with sockslib.SocksSocket() as sock:
-    auth_methods = [
-        sockslib.Socks4Ident("ident")
-    ]
-    sock.set_proxy(('127.0.0.1', 9050), sockslib.Socks.SOCKS4, auth_methods) # Set proxy
-
-    sock.connect(('myexternalip.com', 80)) # Connect to Server via proxy
-    sock.sendall(b"GET /raw HTTP/1.1\r\nHost: myexternalip.com\r\n\r\n") # Send HTTP Request
-    print(sock.recv(1024)) # Print response
-```
-
-### Using other authentication methods (Socks5)
+### Using other authentication methods
 To use more authentication methods like User/Pass auth, you pass an array of authentication methods to the third parameter of `set_proxy` (Don't neglect to set the second parameter to the proxy type!)
 ```python
 import sockslib
@@ -129,6 +110,34 @@ class UserPassAuth(AuthenticationMethod):
 
         return status == 0x00
 ```
+
+### Socks4
+This is an example usage that connects to a Socks4 proxy at `127.0.0.1:9050` and then requests the page http://myexternalip.com/raw
+```python
+import sockslib
+
+with sockslib.SocksSocket() as sock:
+    sock.set_proxy(('127.0.0.1', 9050), sockslib.Socks.SOCKS4) # Set proxy
+
+    sock.connect(('myexternalip.com', 80)) # Connect to Server via proxy
+    sock.sendall(b"GET /raw HTTP/1.1\r\nHost: myexternalip.com\r\n\r\n") # Send HTTP Request
+    print(sock.recv(1024)) # Print response
+```
+#### Socks4 with identity authentication
+```python
+import sockslib
+
+with sockslib.SocksSocket() as sock:
+    auth_methods = [
+        sockslib.Socks4Ident("ident")
+    ]
+    sock.set_proxy(('127.0.0.1', 9050), sockslib.Socks.SOCKS4, auth_methods) # Set proxy
+
+    sock.connect(('myexternalip.com', 80)) # Connect to Server via proxy
+    sock.sendall(b"GET /raw HTTP/1.1\r\nHost: myexternalip.com\r\n\r\n") # Send HTTP Request
+    print(sock.recv(1024)) # Print response
+```
+
 
 ### Installation
 
