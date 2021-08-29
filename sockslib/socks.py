@@ -347,6 +347,7 @@ class SocksSocket(socket.socket):
 
         self.udpsocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.udpsocket.settimeout(1)
+        #self.udpsocket.bind(('', ))
         self.connect(None)
 
     def connect(self, hp):
