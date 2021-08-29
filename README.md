@@ -19,6 +19,7 @@ This library can connect to proxies, authenticate, and then have the use of a no
 - Domain Support
 - User/Pass authentication  (Socks5)
 - Easily customizable authentication (Socks5)
+- UDP Support (Socks5)
 - Full socket api
 ## Documentation
 
@@ -36,7 +37,7 @@ socket.set_proxy (
 ```
 
 ## Examples
-### Socks5
+### Socks5 (TCP)
 This is an example usage that connects to a Socks5 proxy at `127.0.0.1:9050` and then requests the page http://myexternalip.com/raw
 ```python
 import sockslib
@@ -47,6 +48,17 @@ with sockslib.SocksSocket() as sock:
     sock.connect(('myexternalip.com', 80)) # Connect to Server via proxy
     sock.sendall(b"GET /raw HTTP/1.1\r\nHost: myexternalip.com\r\n\r\n") # Send HTTP Request
     print(sock.recv(1024)) # Print response
+```
+### Socks5 (UDP)
+This is an example usage that connects to a Socks5 proxy at `127.0.0.1:9050` and then sends a UDP packet.
+```python
+import sockslib
+
+with sockslib.SocksSocket(udp=True) as sock:
+    sock.set_proxy(('127.0.0.1', 9050)) # Set proxy
+
+    sock.initudp() # Connect to Server and bind a UDP port for communication
+    sock.sendto(b"Hello, World", ("0.0.0.0", 12000)) # Send "Hello, World" to 0.0.0.0:12000 over UDP
 ```
 ### Socks4
 This is an example usage that connects to a Socks4 proxy at `127.0.0.1:9050` and then requests the page http://myexternalip.com/raw

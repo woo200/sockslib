@@ -1,4 +1,5 @@
 from sockslib.socks import AuthenticationMethod
+from sockslib.socks import Socks
 import struct
 
 class UserPassAuth(AuthenticationMethod):

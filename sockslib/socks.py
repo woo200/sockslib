@@ -152,31 +152,83 @@ class ProxyHopper:
         self.hopper.close()
 
 class SocksSocket(socket.socket):
-    def __init__(self, socketobject=None, debug=False):
+    def __init__(self, **kwargs):
+        defaults = {
+            "udp": False,
+            "socketobject": None,
+            "debug": False
+        }
+        kwargs = { **defaults, **kwargs }
+
         super().__init__(socket.AF_INET, socket.SOCK_STREAM)
 
         self.proxy = None
+        self.udp = kwargs["udp"]
         self.auth = [NoAuth()]
         self.socktype = None
-        self.socketobject = socketobject
-        self.debug = debug
+        self.socketobject = kwargs["socketobject"]
+        self.debug = kwargs["debug"]
+        self.udpbind = None
+        self.udpsocket = None
 
     def set_proxy(self, proxy, socktype=Socks.SOCKS5, auth=[NoAuth()]):
+        """
+         Set the proxy to use
+        """
         self.proxy = proxy
         self.auth = auth
         self.socktype = socktype
 
     def sendall(self, data):
+        """
+        -- TCP ONLY --
+         Send data over TCP socket via proxy.
+        """
+        if self.udp and self.udpbind != None:
+            raise SocksException("Cannot use SENDALL on UDP type socket")
+
         if self.socketobject != None:
             self.socketobject.sendall(data)
         else:
             super().sendall(data)
 
     def recv(self, numbytes=1):
+        """
+        -- TCP ONLY --
+         Recieve data over TCP socket
+        """
+        if self.udp and self.udpbind != None:
+            raise SocksException("Cannot use RECV on UDP type socket")
+
         if self.socketobject != None:
             return self.socketobject.recv(numbytes)
         else:
             return super().recv(numbytes)
+
+    def sendto(self, data, address):
+        """
+        -- UDP ONLY --
+         Send data over UDP socket via proxy.
+        """
+        if not self.udp:
+            raise SocksException("Cannot use SENDTO on TCP type socket")
+        if self.udpbind == None or self.udpsocket == None:
+            raise SocksException("Proxy connection not initialized")
+
+        ip, port = address
+
+        addr_type = IpIdentify.identify(ip)
+        if addr_type == None:
+            raise SocksException(f"Invalid IP address or domain name: {ip}")
+
+        # No Fragmentation
+        packet = b"\x00\x00\x00" + Socks5Address(ip, addr_type).getByteIp() + struct.pack("!H", port) + data
+        self.udpbind = (self.udpbind[0].getIp(), self.udpbind[1])
+
+        if self.udpbind[0] == "0.0.0.0":
+            self.udpbind = (self.proxy[0], self.udpbind[1])
+
+        self.udpsocket.sendto(packet, self.udpbind)
 
     def close(self):
         if self.socketobject != None:
@@ -195,7 +247,10 @@ class SocksSocket(socket.socket):
         self.sendall(b"\x05" + struct.pack("B", len(auth)) + bytes([method.getId() for method in auth]))
         ver, authc = self.recv(2)
 
-        ip, port = hp
+        if hp != None:
+            ip, port = hp
+        else:
+            ip, port = ('0.0.0.0', 0)
 
         # Check if authentication method is correct
         if authc == 0xFF:
@@ -222,7 +277,11 @@ class SocksSocket(socket.socket):
 
         if self.debug:
             print("[DEBUG/INFO] (SOCKS5) Sending connection request...")
-        self.sendall(b'\x05\x01\x00' + Socks5Address(ip, addr_type).getByteIp() + struct.pack("!H", port))
+
+        if self.udp:
+            self.sendall(b'\x05\x03\x00\x01\x00\x00\x00\x00\x00\x00')
+        else:
+            self.sendall(b'\x05\x01\x00' + Socks5Address(ip, addr_type).getByteIp() + struct.pack("!H", port))
 
         ver, status, _ = self.recv(3)
 
@@ -233,12 +292,18 @@ class SocksSocket(socket.socket):
         bndaddr = Socks5Address.readAddr(self)
         bndport, = struct.unpack("!H", self.recv(2))
 
-        if self.debug:
-            print(f"[DEBUG/INFO] (SOCKS5) Server accepted connection. (*{dstip}:{dstport})")
+        self.udpbind = (bndaddr, bndport)
 
-        return bndaddr, bndport
+        if self.udp:
+            self.close()
+
+        if self.debug:
+            print(f"[DEBUG/INFO] (SOCKS5) [{'UDP' if self.udp else 'TCP'}] Server accepted connection. (*{bndaddr}:{bndport})")
 
     def __handshake_4(self, hp, auth=[Socks4Ident("")]):
+        if self.udp:
+            raise SocksException("Cannot use UDP port over SOCKS4")
+
         ip, port = hp
         ident = IpIdentify.identify(ip)
 
@@ -274,7 +339,20 @@ class SocksSocket(socket.socket):
         if self.debug:
             print(f"[DEBUG/INFO] (SOCKS4) Server accepted connection. (*{dstip}:{dstport})")
 
+        self.udpbind = (dstip, dstport)
+
+    def initudp(self):
+        if not self.udp:
+            raise SocksException("Cannot initialize UDP proxy connection on TCP socket. Please see docs for proper UDP socket use.")
+
+        self.udpsocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.udpsocket.settimeout(1)
+        self.connect(None)
+
     def connect(self, hp):
+        if self.udp and hp != None:
+            raise SocksException("Cannot initialize TCP proxy connection on UDP socket. Please see docs for proper TCP socket use.")
+
         if self.proxy == None:
             raise SocksException("No proxy selected")
 

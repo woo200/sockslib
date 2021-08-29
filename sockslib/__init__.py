@@ -1,4 +1,4 @@
-__version__ = "1.4.5"
+__version__ = "1.6.1"
 
 from sockslib.socks import *
 from sockslib.socksauth import *
