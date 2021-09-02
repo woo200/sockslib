@@ -42,19 +42,19 @@ socket = sockslib.SocksSocket()
 ```python
 socket.set_proxy (
 	('127.0.0.1', 0),      # Ip, Port
-	sockslib.Socks.SOCKS5, # SOCKS5/SOCKS4, (Optional)
-	authentication         # Array of authentication methods (Optional)
+	sockslib.Socks.SOCKS5, # SOCKS5/SOCKS4, (Optional) (Default SOCKS5)
+	authentication         # Array of authentication methods (Optional) (Default NoAuth)
 )
 ```
 
 #### Set a default proxy
 Default proxies can be useful for situations when other libraries use sockets to communicate and you want to force that library to use a proxy instead of a direct connection
 ```python
-import sockslib
-import socket
-
-sockslib.set_default_proxy(('127.0.0.1', 9050)) # Set the default proxy, Same parameters as sockslib.set_proxy
-socket.socket = sockslib.SocksSocket # Make the default socket object a SocksSocket
+sockslib.set_default_proxy(
+	('127.0.0.1', 0),      # Ip, Port
+	sockslib.Socks.SOCKS5, # SOCKS5/SOCKS4, (Optional) (Default SOCKS5)
+	authentication         # Array of authentication methods (Optional) (Default NoAuth)
+)
 ```
 
 #### URLLib Proxied
