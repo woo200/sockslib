@@ -18,26 +18,57 @@ This library can connect to proxies, authenticate, and then have the use of a no
 ## Documentation
 
 ### Index
- 1. [SOCKS5](#socks5)
+ 1. [Intro](#intro)
+    1. [Creating a socket](#creating-a-new-socket)
+    2. [Setting the proxy](#setting-a-proxy)
+    3. [Set the default proxy](#set-a-default-proxy)
+    4. [URLLib proxied](#urllib-proxied)
+ 2. [SOCKS5](#socks5)
     1. [TCP](#socks5-tcp)
     2. [UDP](#socks5-udp)
     3. [Using Other Authentication Methods](#using-other-authentication-methods)
     4. [Implementing Your Own Authentication Methods](#implementing-your-own-authentication-methods)
- 2. [SOCKS4](#socks4)
+ 3. [SOCKS4](#socks4)
     1. [No Authentication](#socks4)
     2. [Identity Authentication](#socks4-with-identity-authentication)
+
+## Intro
 
 #### Creating a new socket
 ```python
 socket = sockslib.SocksSocket()
 ```
-#### sock.set_proxy(proxy, type, authentication)
+#### Setting a proxy
 ```python
 socket.set_proxy (
 	('127.0.0.1', 0),      # Ip, Port
 	sockslib.Socks.SOCKS5, # SOCKS5/SOCKS4, (Optional)
 	authentication         # Array of authentication methods (Optional)
 )
+```
+
+#### Set a default proxy
+Default proxies can be useful for situations when other libraries use sockets to communicate and you want to force that library to use a proxy instead of a direct connection
+```python
+import sockslib
+import socket
+
+sockslib.set_default_proxy(('127.0.0.1', 9050)) # Set the default proxy, Same parameters as sockslib.set_proxy
+socket.socket = sockslib.SocksSocket # Make the default socket object a SocksSocket
+```
+
+#### URLLib Proxied
+```python
+import urllib.request
+
+import sockslib
+import socket
+
+sockslib.set_default_proxy(('127.0.0.1', 9050)) # Set the default proxy
+socket.socket = sockslib.SocksSocket # Make the default socket object a SocksSocket
+
+html = urllib.request.urlopen('https://myexternalip.com/raw').read() # Request the page
+print(html)
 ```
 
 ## Examples

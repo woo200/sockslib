@@ -152,7 +152,8 @@ class ProxyHopper:
         self.hopper.close()
 
 class SocksSocket(socket.socket):
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
+        global default_proxy, default_proxy_auth, default_proxy_type
         defaults = {
             "udp": False,
             "socketobject": None,
@@ -162,10 +163,10 @@ class SocksSocket(socket.socket):
 
         super().__init__(socket.AF_INET, socket.SOCK_STREAM)
 
-        self.proxy = None
+        self.proxy = default_proxy
         self.udp = kwargs["udp"]
-        self.auth = [NoAuth()]
-        self.socktype = None
+        self.auth = default_proxy_auth
+        self.socktype = default_proxy_type
         self.socketobject = kwargs["socketobject"]
         self.debug = kwargs["debug"]
         self.udpbind = None
@@ -385,3 +386,16 @@ class SocksSocket(socket.socket):
             self.__handshake_4(hp, self.auth)
         else:
             raise SocksException(f"Unknown proxy type {self.socktype}")
+
+default_proxy = None
+default_proxy_auth = [NoAuth()]
+default_proxy_type = Socks.SOCKS5
+
+def set_default_proxy(proxy, socktype=Socks.SOCKS5, auth=[NoAuth()]):
+    """
+    Set the proxy for all sockssockets to use by default
+    """
+    global default_proxy, default_proxy_auth, default_proxy_type
+    default_proxy = proxy
+    default_proxy_type = socktype
+    default_proxy_auth = auth
