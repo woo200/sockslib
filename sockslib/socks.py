@@ -336,9 +336,6 @@ class SocksSocket(socket.socket):
 
         self.udpbind = (bndaddr, bndport)
 
-        if self.udp:
-            self.close()
-
         if self.debug:
             print(f"[DEBUG/INFO] (SOCKS5) [{'UDP' if self.udp else 'TCP'}] Server accepted connection. (*{bndaddr}:{bndport})")
 
