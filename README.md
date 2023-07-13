@@ -74,7 +74,7 @@ print(html)
 ```
 
 ### IPv6
-To connect to a proxy server via ipv6, you must explicitly specify the protocol by passing the `ip_protocol` parameter to the SocksSocket constructor, OR by using the 3rd option of [set_default_proxy](#set-a-default-proxy)
+To connect to a proxy server via ipv6, you must explicitly specify the protocol by passing the `ip_protocol` parameter to the SocksSocket constructor, OR by using the 3rd option of [set_default_proxy](#set-a-default-proxy).
 Here is an example of connecting to a remote IPv6 proxy:
 ```python
 import sockslib
