@@ -403,10 +403,13 @@ class SocksSocket(socket.socket):
         if self.debug:
             print(f"[DEBUG/INFO] Connecting to proxy: {self.proxy}")
 
-        if self.socketobject is not None:
-            self.socketobject.connect(self.proxy)
-        else:
-            super().connect(self.proxy)
+        try:
+            if self.socketobject is not None:
+                self.socketobject.connect(self.proxy)
+            else:
+                super().connect(self.proxy)
+        except Exception as e:
+            raise SocksException(f"Failed to connect to proxy: {e}")
 
         if self.debug:
             print("[DEBUG/INFO] Connected, Handshaking...")

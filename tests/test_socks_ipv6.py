@@ -32,8 +32,8 @@ class TestSocksV6(unittest.TestCase):
 
     def test_socks5_direct(self):
 
-        self.socket.connect(('2001:0db8:85a3:0000:0000:8a2e:0370:7334', 80))
-        self.socket.sendall(b"GET / HTTP/1.1\r\nHost: example.com\r\n\r\n")
+        self.socket.connect(('2607:f8b0:4005:810::200e', 80)) # Googles IP addr, may be outdated soon
+        self.socket.sendall(b"GET / HTTP/1.1\r\nHost: www.google.com\r\n\r\n")
 
         self.socket.settimeout(10)  # Timeout so recv don't go on forevcer
         response = self.socket.recv(1024)
