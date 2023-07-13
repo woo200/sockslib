@@ -166,7 +166,7 @@ class ProxyHopper:
 
 class SocksSocket(socket.socket):
     def __init__(self, *args, **kwargs):
-        global default_proxy, default_proxy_auth, default_proxy_type
+        global default_proxy, default_proxy_auth, default_proxy_type, default_proxy_ip_protocol
         defaults = {
             "udp": False,
             "socketobject": None,
@@ -176,6 +176,9 @@ class SocksSocket(socket.socket):
         kwargs = {**defaults, **kwargs}
 
         self.ip_version = kwargs["ip_version"]
+        if default_proxy_ip_protocol is not None:
+            self.ip_version = default_proxy_ip_protocol
+            
         # validate ip version
         if self.ip_version not in [socket.AF_INET, socket.AF_INET6]:
             raise ValueError("Invalid IP Version provided (AF_INET or AF_INET6 required)")
@@ -425,13 +428,15 @@ class SocksSocket(socket.socket):
 default_proxy = None
 default_proxy_auth = [NoAuth()]
 default_proxy_type = Socks.SOCKS5
+default_proxy_ip_protocol = None
 
 
-def set_default_proxy(proxy, socktype=Socks.SOCKS5, auth=[NoAuth()]):
+def set_default_proxy(proxy, socktype=Socks.SOCKS5, ip_protocol=socket.AF_INET, auth=[NoAuth()]):
     """
     Set the proxy for all sockssockets to use by default
     """
-    global default_proxy, default_proxy_auth, default_proxy_type
+    global default_proxy, default_proxy_auth, default_proxy_type, default_proxy_ip_protocol
     default_proxy = proxy
     default_proxy_type = socktype
     default_proxy_auth = auth
+    default_proxy_ip_protocol = ip_protocol
