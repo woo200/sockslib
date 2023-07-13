@@ -1,0 +1,9 @@
++-------------------------------+
+| So I dont forget the commands |
++-------------------------------+
+
+Update version in [ sockslib/__init__.py ]
+                  [ setup.py             ]
+> rm -rf dist/
+> python3 -m pip install --upgrade build
+> twine upload dist/*
