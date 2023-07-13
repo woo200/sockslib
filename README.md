@@ -23,6 +23,7 @@ This library can connect to proxies, authenticate, and then have the use of a no
     2. [Setting the proxy](#setting-a-proxy)
     3. [Set the default proxy](#set-a-default-proxy)
     4. [URLLib proxied](#urllib-proxied)
+    5. [IPv6](#ipv6)
  2. [SOCKS5](#socks5)
     1. [TCP](#socks5-tcp)
     2. [UDP](#socks5-udp)
