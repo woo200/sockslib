@@ -115,6 +115,7 @@ with sockslib.SocksSocket(udp=True) as sock:
     sock.initudp() # Connect to Server and bind a UDP port for communication
     sock.sendto(b"Hello, World", ("0.0.0.0", 12000)) # Send "Hello, World" to 0.0.0.0:12000 over UDP
 ```
+Due to the nature of UDP in the SOCKS5 protocol, it is reccomended to use the context manager, as the remote proxy server will not drop the UDP associate request until the socket is closed. 
 
 ### Using other authentication methods
 To use more authentication methods like User/Pass auth, you pass an array of authentication methods to the third parameter of `set_proxy` (Don't neglect to set the second parameter to the proxy type!)
