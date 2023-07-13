@@ -54,7 +54,7 @@ Default proxies can be useful for situations when other libraries use sockets to
 sockslib.set_default_proxy(
 	('127.0.0.1', 0),      # Ip, Port
 	sockslib.Socks.SOCKS5, # SOCKS5/SOCKS4, (Optional) (Default SOCKS5)
-    socket.AF_INET,        # Default protocol (AF_INET, AF_INET6)
+	socket.AF_INET,        # Default protocol (AF_INET, AF_INET6)
 	authentication         # Array of authentication methods (Optional) (Default NoAuth)
 )
 ```
