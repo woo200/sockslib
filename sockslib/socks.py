@@ -170,11 +170,17 @@ class SocksSocket(socket.socket):
         defaults = {
             "udp": False,
             "socketobject": None,
-            "debug": False
+            "debug": False,
+            "ip_version": socket.AF_INET
         }
         kwargs = {**defaults, **kwargs}
 
-        super().__init__(socket.AF_INET, socket.SOCK_STREAM)
+        self.ip_version = kwargs["ip_version"]
+        # validate ip version
+        if self.ip_version not in [socket.AF_INET, socket.AF_INET6]:
+            raise ValueError("Invalid IP Version provided (AF_INET or AF_INET6 required)")
+
+        super().__init__(self.ip_version, socket.SOCK_STREAM)
 
         self.proxy = default_proxy
         self.udp = kwargs["udp"]
@@ -383,7 +389,7 @@ class SocksSocket(socket.socket):
         if not self.udp:
             raise SocksException("Cannot initialize UDP proxy connection on TCP socket. Please see docs for proper UDP socket use.")
 
-        self.udpsocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.udpsocket = socket.socket(self.ip_version, socket.SOCK_DGRAM)
         # self.udpsocket.bind(('', ))
         self.connect(None)
 
