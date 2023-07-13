@@ -71,6 +71,21 @@ html = urllib.request.urlopen('https://myexternalip.com/raw').read() # Request t
 print(html)
 ```
 
+### IPv6
+To connect to a proxy server via ipv6, you must explicitly specify the protocol by passing the `ip_protocol` parameter to the SocksSocket constructor. 
+Here is an example of connecting to a remote IPv6 proxy:
+```python
+import sockslib
+import socket # import socket for the protocol specifiers 
+
+with sockslib.SocksSocket(ip_protocol=socket.AF_INET6) as sock:
+    sock.set_proxy(('::1', 9050)) # Set proxy
+
+    sock.connect(('myexternalip.com', 80)) # Connect to Server via proxy 
+    sock.sendall(b"GET /raw HTTP/1.1\r\nHost: myexternalip.com\r\n\r\n") # Send HTTP Request
+    print(sock.recv(1024)) # Print response
+```
+
 ## Examples
 
 ### SOCKS5
