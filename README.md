@@ -3,7 +3,11 @@
 Sockslib is a library designed to make the usage of socks proxies as easy as possible.
 This library can connect to proxies, authenticate, and then have the use of a normal python socket.
 
-![Downloads](https://pepy.tech/badge/sockslib)  [![PyPI version fury.io](https://badge.fury.io/py/sockslib.svg)](https://pypi.python.org/pypi/sockslib/)
+![Downloads](https://pepy.tech/badge/sockslib)  [![PyPI version fury.io](https://badge.fury.io/py/sockslib.svg)](https://pypi.python.org/pypi/sockslib/)<br>
+
+Copyright (c) John Woo. All rights reserved.<br>
+Licensed under the MIT License. See LICENSE file in the project root for full license information.
+
 
 ## Features
 - Socks5 support
